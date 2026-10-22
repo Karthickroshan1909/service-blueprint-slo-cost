@@ -1,199 +1,214 @@
 
-# Service Blueprint — Task Tracker
 
-## 1. Service Overview
+# SLO Policy — Task Tracker
 
-The Task Tracker is a web application that allows users
-to add, view, and delete tasks through a browser.
+## 1. Purpose
 
-The application uses Python Flask for backend processing,
-HTML and CSS for the frontend, and SQLite for the current
-database implementation.
+This document defines the reliability targets, measurements,
+error budget, and alert thresholds for the Task Tracker application.
 
-The application is deployed to Azure App Service.
-GitHub stores the source code, and GitHub Actions automates
-the deployment process.
+The application uses Python Flask hosted on Azure App Service
+and a database for storing tasks.
 
-## 2. Architecture Components
+These are proposed targets for the project. They must be
+validated using monitoring data after deployment.
 
-### User and Browser
+## 2. Service Level Indicators (SLIs)
 
-The user opens the website through a browser and submits
-requests to add or delete tasks.
+SLIs are measurements used to understand the performance
+and reliability of the application.
 
-### Application Tier
+### SLI 1: Availability
 
-The Flask application runs on Azure App Service.
-It receives HTTPS requests, processes user input,
-executes application logic, and communicates with the database.
+Measurement:
+Percentage of valid application requests that complete
+successfully without a server-side error.
 
-### Data Tier
+Formula:
 
-The application currently uses SQLite.
+Availability (%) =
+Successful requests / Total valid requests × 100
 
-The local development database is stored in tasks.db.
-The cloud deployment must use an appropriately persistent
-database solution before the application is considered
-production-ready.
+Example:
+If 995 out of 1,000 requests succeed, availability is 99.5%.
 
-### Source Control and Deployment
+### SLI 2: Response Latency
 
-GitHub stores the application source code.
-GitHub Actions runs the deployment workflow and publishes
-the application to Azure App Service.
+Measurement:
+The time taken by the application to respond to a request.
 
-## 3. Request Flow
+Metric:
+95th percentile response time (p95).
 
-1. The user opens the website over HTTPS.
-2. Azure App Service receives the request.
-3. Flask routes the request to the correct function.
-4. For the home page, the application retrieves tasks.
-5. For adding a task, Flask validates the submitted task
-   and writes it to the database.
-6. For deleting a task, Flask identifies the task by ID
-   and deletes it from the database.
-7. The application redirects the user to the home page.
-8. The browser displays the updated task list.
+Example:
+If p95 is 500 milliseconds, 95% of measured requests
+complete within 500 milliseconds.
 
-## 4. Data Flow
+### SLI 3: Application Errors
 
-### Add Task
+Measurement:
+The percentage of requests that return server-side errors,
+such as HTTP 5xx responses.
 
-Browser form
--> Flask /add endpoint
--> Input validation
--> Database insert
--> Database commit
--> Redirect to home page
+Formula:
 
-### View Tasks
+Error rate (%) =
+HTTP 5xx responses / Total valid requests × 100
 
-Browser
--> Flask home endpoint
--> Database query
--> Task records returned
--> HTML template rendered
--> Browser displays tasks
+### SLI 4: Database Connectivity
 
-### Delete Task
+Measurement:
+Whether the application can successfully read and write
+task data in the database.
 
-Browser delete form
--> Flask /delete/<task_id> endpoint
--> Database delete operation
--> Database commit
--> Redirect to home page
+Evidence may include successful database operations,
+connection failures, and application logs.
 
-## 5. Deployment Flow
+## 3. Service Level Objectives (SLOs)
 
-1. The developer modifies application files locally.
-2. The developer commits the changes to Git.
-3. The changes are pushed to the GitHub main branch.
-4. GitHub Actions starts the configured workflow.
-5. The workflow builds or packages the application
-   and deploys it to Azure App Service.
-6. The deployment result is checked in GitHub Actions.
-7. The developer opens the Azure website and tests
-   the application's basic functionality.
+An SLO is the target reliability or performance level
+that the service aims to achieve.
 
-The deployment pipeline has been tested successfully
-for the initial application version.
+### Availability Target
 
-## 6. Failure Paths
+Target:
+99.5% monthly availability.
 
-### Application Startup Failure
+Measurement window:
+A rolling 30-day period.
 
-Possible causes:
-- Missing Python dependency.
-- Incorrect application startup configuration.
-- Invalid application code.
+### Latency Target
 
-Response:
-- Inspect deployment logs.
-- Check requirements.txt and startup configuration.
-- Restore a known-good release if required.
+Target:
+95% of application requests should complete within
+500 milliseconds under normal expected traffic.
 
-### Database Failure
+Measurement window:
+A rolling 30-day period.
 
-Possible causes:
-- Database unavailable.
-- Invalid connection settings.
-- Database file not present in the deployed environment.
+### Application Error Target
 
-Response:
-- Inspect application logs.
-- Verify database connectivity and storage configuration.
-- Restore data using the chosen backup and recovery process.
+Target:
+Fewer than 1% of valid requests should return HTTP 5xx
+server-side errors over a rolling 30-day period.
 
-### Deployment Failure
+### Database Target
 
-Possible causes:
-- GitHub Actions workflow failure.
-- Dependency installation failure.
-- Incorrect deployment configuration.
+Target:
+Database-dependent operations should succeed in at
+least 99.5% of attempts over a rolling 30-day period.
 
-Response:
-- Inspect the failed workflow.
-- Correct the configuration.
-- Redeploy and verify the application.
+This target depends on selecting and monitoring a
+suitable persistent database.
 
-### High Latency or Capacity Problems
+## 4. Error Budget
 
-Possible causes:
-- Increased traffic.
-- Slow database operations.
-- Insufficient application resources.
+The error budget is the amount of unreliability allowed
+by the availability SLO.
 
-Response:
-- Review request latency and error metrics.
-- Inspect resource usage.
-- Optimize database operations or scale resources when justified.
+Availability SLO = 99.5%
 
-### Connectivity Failure
+Error budget = 100% - 99.5% = 0.5%
 
-Possible causes:
-- Network restrictions.
-- DNS issues.
-- Incorrect database connection settings.
+For a 30-day month:
 
-Response:
-- Check network configuration and logs.
-- Verify database access rules and credentials.
+Total time = 30 × 24 = 720 hours
 
-## 7. Security
+Allowed unavailable time =
+720 × 0.005 = 3.6 hours
 
-- Use HTTPS for public website traffic.
-- Do not commit passwords, access keys, or tokens.
-- Keep secrets in supported application settings or a
-  managed secret store.
-- Use least-privilege permissions.
-- Restrict database access.
-- Avoid logging sensitive information.
+Therefore, the approximate monthly error budget is
+3 hours and 36 minutes.
 
-## 8. Availability and Recovery
+The time-based calculation is an illustration.
+The actual request-based error budget should be calculated
+from the measured availability SLI.
 
-Proposed availability SLO: 99.5% over a rolling 30-day period.
+## 5. Alert Thresholds
 
-The application should have monitored health checks
-and documented incident-response steps.
+### Critical Alert: Application Unavailable
 
-Recovery Point Objective (RPO) and Recovery Time Objective
-(RTO) must be finalized after selecting the production database
-and reviewing the project's recovery requirements.
+Trigger:
+Three consecutive failed health checks.
 
-## 9. Current Limitations
+Action:
+Investigate App Service health, application startup,
+deployment status, and logs.
 
-- SQLite is suitable for local learning and simple testing.
-- Database persistence in Azure has not yet been validated.
-- Production backup and recovery are not yet configured.
-- Alert thresholds are documented as proposals and must
-  be configured in monitoring tools.
-- Cost estimates must be calculated before selecting
-  production service tiers.
+### Critical Alert: High Error Rate
 
-## 10. Future Improvements
+Trigger:
+HTTP 5xx error rate exceeds 5% for 5 consecutive minutes,
+with enough requests to make the measurement meaningful.
 
-- Select a persistent managed database.
-- Configure application monitoring and alerts.
-- Add automated tests to the GitHub Actions workflow.
-- Define and test backup and recovery procedures.
-- Estimate monthly cloud costs at three traffic levels.
+Action:
+Check application exceptions, recent deployments,
+resource limits, and database connectivity.
+
+### Warning Alert: High Latency
+
+Trigger:
+p95 response time exceeds 1 second for 10 consecutive minutes.
+
+Action:
+Review request latency, CPU and memory usage,
+database query time, and traffic levels.
+
+### Warning Alert: Database Failures
+
+Trigger:
+Three or more database connection failures within 5 minutes.
+
+Action:
+Check database availability, connection settings,
+network restrictions, and credentials.
+
+These thresholds are proposed operational rules.
+They are not active Azure alerts until configured.
+
+## 6. Error Budget Policy
+
+When less than 50% of the error budget remains:
+
+- Review recent failures.
+- Investigate recurring errors.
+- Prioritize reliability improvements.
+
+When the error budget is exhausted:
+
+- Prioritize fixing reliability problems.
+- Delay non-essential risky changes until reliability improves.
+- Review the causes of failure before further releases.
+
+## 7. Monitoring Requirements
+
+The service should collect:
+
+- Request count and response status codes.
+- Response latency.
+- Application exceptions.
+- Health-check results.
+- Database connection failures.
+- CPU and memory usage where available.
+- Deployment success and failure information.
+
+Azure Application Insights or another suitable monitoring
+solution can be used to collect and analyze these measurements.
+
+## 8. Measurement Limitations
+
+The targets in this document are design goals, not measured results.
+
+Availability and latency must be measured using actual
+monitoring data. Health checks alone do not prove that
+all application features work correctly.
+
+Database reliability depends on the final database design.
+The current local SQLite setup must not be assumed to provide
+production-grade persistence in the Azure deployment.
+
+## 9. Review
+
+Review these targets after collecting real traffic and
+performance data. Adjust them according to user needs,
+operational evidence, and the available cloud budget.
