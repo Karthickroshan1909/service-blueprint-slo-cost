@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Task Tracker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px #00000010;
+        }
+
+        h1 {
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        form.add-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 11px 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        h3 {
+            color: #334155;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            overflow-wrap: anywhere;
+        }
+
+        .task-name {
+            flex: 1;
+            color: #334155;
+        }
+
+        .delete-form {
+            margin: 0;
+        }
+
+        .delete-button {
+            background: #dc2626;
+        }
+
+        .empty {
+            text-align: center;
+            color: #94a3b8;
+            padding: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            form.add-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Task Tracker</h1>
+
+        <p class="subtitle">
+            Organize your work, one task at a time.
+        </p>
+
+        <form class="add-form" action="/add" method="POST">
+            <input
+                type="text"
+                name="task"
+                placeholder="Enter a new task"
+                maxlength="200"
+                required
+            >
+            <button type="submit">Add Task</button>
+        </form>
+
+        <h3>My Tasks ({{ tasks|length }})</h3>
+
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    <span class="task-name">{{ task["task"] }}</span>
+
+                    <form
+                        class="delete-form"
+                        action="{{ url_for('delete_task', task_id=task['id']) }}"
+                        method="POST"
+                    >
+                        <button class="delete-button" type="submit">
+                            Delete
+                        </button>
+                    </form>
+                </li>
+            {% else %}
+                <li class="empty">
+                    No tasks yet. Add your first task!
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div class="footer">
+            Task Tracker | Built with Python, Flask and SQLite
+        </div>
+    </div>
+</body>
+</html>
