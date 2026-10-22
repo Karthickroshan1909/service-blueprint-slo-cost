@@ -1,131 +1,44 @@
+## Baseline Cost Estimate
 
-# Cloud Cost Envelope — Task Tracker
+### Current Hosting Configuration
 
-## 1. Purpose
+The application is deployed using Azure App Service on the Free F1 plan.
 
-This document estimates the monthly cloud cost of running
-the Task Tracker application on Microsoft Azure.
+| Component | Current choice | Estimated monthly cost |
+|---|---|---:|
+| Web hosting | Azure App Service F1 | ₹0 |
+| Database | SQLite in the application | ₹0 additional service charge |
+| Custom domain | Not included | ₹0 |
+| Azure SQL Database | Not provisioned | ₹0 |
+| Azure Monitor / Log Analytics | No paid configuration confirmed | Not estimated |
+| Backup service | Not configured | Not estimated |
 
-The model considers three traffic levels:
-Low, Medium, and High.
+**Estimated baseline: ₹0/month for the listed current components**, assuming the app remains on F1 and no separately chargeable services are added. This is not a complete Azure invoice estimate.
 
-The estimates are planning scenarios, not live Azure quotes.
-Actual prices depend on the region, selected service tiers,
-usage, discounts, and current Azure pricing.
+### Important F1 Limitations
 
-## 2. Application Architecture
+The F1 tier is intended for development, learning, and experimentation. It provides shared compute, a daily CPU quota, and no App Service SLA. It is not recommended for production workloads.
 
-- Application hosting: Azure App Service on Linux.
-- Application runtime: Python Flask.
-- Database: A persistent managed database must be selected.
-- Monitoring: Azure Monitor and Application Insights.
-- Backup: Database backup and recovery capability.
-- Network: HTTPS requests and outbound data transfer.
-- Support: Azure support plan, if required.
+SQLite does not have a separate Azure database charge in this prototype, but its persistence and recovery on App Service have not been validated. A production design should use a suitable persistent database and configure backups.
 
-## 3. Traffic Scenarios
+### Traffic Scenarios
 
-### Low Traffic
+| Scenario | Requests per day | Hosting assumption | Cost approach |
+|---|---:|---|---|
+| Low | 1,000 | F1 for demonstration, if within its limits | ₹0 for F1 hosting |
+| Medium | 10,000 | Reassess CPU quota, latency, and storage | Recalculate if upgrading |
+| High | 100,000 | F1 should not be assumed sufficient | Estimate a suitable paid plan and database |
 
-Assumptions:
-- 1,000 application requests per day.
-- Approximately 30,000 requests per month.
-- Small number of users.
-- Minimal data storage and outbound transfer.
+These traffic levels are planning scenarios, not measured load-test results. Request count alone does not determine the required plan; execution time, concurrency, and resource usage also matter.
 
-### Medium Traffic
+### Cost Optimization
 
-Assumptions:
-- 10,000 application requests per day.
-- Approximately 300,000 requests per month.
-- Regular daily usage.
-- Moderate database activity and logging.
+- Start with F1 while developing and demonstrating the prototype.
+- Check Azure Cost Management for actual charges.
+- Avoid provisioning paid databases, monitoring workspaces, or other services unless required.
+- Before production use, estimate the required hosting and database tiers using the Azure Pricing Calculator.
+- Revisit this estimate whenever the architecture or traffic assumptions change.
 
-### High Traffic
+### Estimate Status
 
-Assumptions:
-- 100,000 application requests per day.
-- Approximately 3,000,000 requests per month.
-- Larger number of concurrent users.
-- Higher compute, database, monitoring, and network requirements.
-
-These are hypothetical workload levels, not measured traffic.
-
-## 4. Monthly Cost Categories
-
-| Cost Category | Low Traffic | Medium Traffic | High Traffic |
-|---|---|---|---|
-| Compute / App Service | Verify Azure price | Verify Azure price | Verify Azure price |
-| Managed database | Verify selected tier | Verify selected tier | Verify selected tier |
-| Storage | Estimate from usage | Estimate from usage | Estimate from usage |
-| Network transfer | Estimate outbound GB | Estimate outbound GB | Estimate outbound GB |
-| Logging and monitoring | Estimate ingestion GB | Estimate ingestion GB | Estimate ingestion GB |
-| Backup | Estimate database size and retention | Estimate database size and retention | Estimate database size and retention |
-| Support | Confirm support plan | Confirm support plan | Confirm support plan |
-| Monthly total | Calculate after pricing | Calculate after pricing | Calculate after pricing |
-
-## 5. Cost Calculation Method
-
-For each scenario:
-
-Monthly total =
-Compute + Database + Storage + Network transfer
-+ Logging and monitoring + Backup + Support
-
-For usage-based services:
-
-Estimated cost =
-Monthly usage quantity × Unit price
-
-Examples:
-- Compute cost = Selected plan monthly price.
-- Storage cost = Stored GB × storage price per GB.
-- Network cost = Billable outbound GB × applicable transfer price.
-- Logging cost = Billable ingestion GB × applicable ingestion price.
-- Backup cost = Billable backup storage × applicable backup price.
-
-Free allowances and included service features must be
-deducted where applicable.
-
-## 6. Important Cost Considerations
-
-- A Free App Service plan may have limitations and is
-  intended for learning and testing, not production guarantees.
-- A managed database may become a major part of the monthly cost.
-- Monitoring ingestion can grow with application traffic.
-- Backup costs depend on database size, retention, and service tier.
-- Network transfer pricing depends on the destination and region.
-- A paid Azure support plan should not be assumed unless selected.
-- Azure for Students credits may offset eligible charges,
-  but credits do not mean the underlying services have no cost.
-
-## 7. Cost Optimization
-
-- Start with the smallest service tier that meets requirements.
-- Avoid unnecessary always-on resources.
-- Set budgets and cost alerts.
-- Review monitoring retention and ingestion volume.
-- Use suitable storage tiers.
-- Scale up only when measurements justify it.
-- Delete unused test resources.
-- Review student-credit eligibility and remaining balance.
-
-## 8. Limitations
-
-The numerical monthly totals are intentionally pending
-until the exact Azure region, hosting tier, database product,
-storage volume, outbound transfer, logging ingestion,
-backup requirements, and support plan are confirmed.
-
-No unverified pricing values should be presented as
-actual Azure quotes.
-
-## 9. Next Steps
-
-1. Confirm the current App Service plan and region.
-2. Select a persistent database service.
-3. Define storage, transfer, logging, and backup assumptions.
-4. Obtain current prices using the Azure Pricing Calculator.
-5. Calculate the monthly total for each traffic scenario.
-6. Review the cost envelope against the project budget.
-
+The F1 hosting baseline is identified. Paid-tier estimates remain pending because a production hosting plan, database, region-specific prices, and measured workload have not been selected.
